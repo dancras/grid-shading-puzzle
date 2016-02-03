@@ -1,5 +1,4 @@
 var gridData, rowLabels, colLabels;
-var killClick = false;
 
 $(document).ready( function() {
 $.event.special.tap.emitTapOnTaphold = false;
@@ -18,7 +17,10 @@ $.event.special.tap.emitTapOnTaphold = false;
 
   var doRest = function() {
       drawGrid();
-      loadLabels();
+      loadLabels(function() {
+        updateSequences();
+        updateUncertains();
+      });
       createListeners();
   };
 
@@ -32,6 +34,7 @@ $.event.special.tap.emitTapOnTaphold = false;
     for (var rowIndex in gridData) {
       var row = addElem('row', $('.grid'));
       drawCells(row, rowIndex);
+      $(addElem('uncertains uncertains-row', row)).attr('data-index', rowIndex);
       addRowSequences(row);
     }
   };
@@ -55,7 +58,13 @@ $.event.special.tap.emitTapOnTaphold = false;
 
   var addColumnSequences = function() {
     var seqRow = addElem('column-sequence', $('.grid'));
-    for (var i in gridData) {
+    var i;
+
+    for (i in gridData) {
+      $(addElem('uncertains uncertains-column', seqRow)).attr('data-index', i);
+    }
+
+    for (i in gridData) {
       var seqCell = addElem('vertical sequence', seqRow);
     }
   };
@@ -75,13 +84,13 @@ $.event.special.tap.emitTapOnTaphold = false;
     });
   };
 
-  var loadLabels = function() {
+  var loadLabels = function(callback) {
     $.get('data/row-labels.dat', function(rowData) {
       rowLabels = JSON.parse(rowData);
 
       $.get('data/column-labels.dat', function(colData) {
         colLabels = JSON.parse(colData);
-        updateSequences();
+        callback();
       });
     });
   };
@@ -147,6 +156,49 @@ $.event.special.tap.emitTapOnTaphold = false;
     drawColumnSequences();
   };
 
+  var updateUncertains = function() {
+
+    var i,
+        sequence,
+        uncertainsElement,
+        uncertainsValue;
+
+    for (i in rowLabels) {
+      sequence = rowLabels[i];
+      uncertainsElement = $('.uncertains.uncertains-row[data-index=' + i + ']');
+
+      uncertainsValue = sequence.reduce(function(a, b) { return a + b; }, 0) + sequence.length - 1;
+
+      if (gridData[i][0] === 2) {
+        uncertainsValue += 1;
+      }
+
+      if (gridData[i][24] === 2) {
+        uncertainsValue += 1;
+      }
+
+      uncertainsElement.text(uncertainsValue);
+    }
+
+    for (i in colLabels) {
+      sequence = colLabels[i];
+      uncertainsElement = $('.uncertains.uncertains-column[data-index=' + i + ']');
+
+      uncertainsValue = sequence.reduce(function(a, b) { return a + b; }, 0) + sequence.length - 1;
+
+      if (gridData[0][i] === 2) {
+        uncertainsValue += 1;
+      }
+
+      if (gridData[24][i] === 2) {
+        uncertainsValue += 1;
+      }
+
+      uncertainsElement.text(uncertainsValue);
+    }
+
+  };
+
   var drawRowSequences = function() {
     $('.sequence').each( function(index) {
       var seqArr = rowLabels[index];
@@ -203,24 +255,22 @@ $.event.special.tap.emitTapOnTaphold = false;
     });
 
     $('.cell').each( function(index) {
-      $(this).on('taphold', function(evt) {
-          killClick = true;
+
+      $(this).mousedown(function(evt) {
+
+        if (evt.button === 2) {
           toggleLocked(index);
-        });
-
-      $(this).click(function(evt) {
-        if (killClick) {
-          killClick = false;
-          return;
-        }
-        if (isUnlocked(index)) {
+        } else if (isUnlocked(index)) {
           toggleCell(index);
-
         }
+
+        updateUncertains();
         updateSequences();
         saveChanges();
       });
+
     });
+
   };
 
   var toggleHelpHeading = function() {

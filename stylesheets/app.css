@@ -1,3 +1,4 @@
+
 .cell {
   float: left;
   border: 1px solid grey;
@@ -7,21 +8,15 @@
 .column-sequence {
   clear: left;
   width: 100%;
+  height: 300px;
 }
 .container {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
+  margin: 1em 0;
 }
 .controls {
-  position: fixed;
-  bottom: 0;
-  right: 0.5rem;
-  left: auto;
+  margin: 1em 0;
   height: 3rem;
   width: 100%;
-  z-index: 1;
   border: 1px solid black;
   background-color: white;
 }
@@ -53,6 +48,11 @@ label {
 .sequence {
   font-weight: bold;
 }
+
+.row .sequence {
+  line-height: 30px;
+}
+
 .ui-loader {
   display: none !important;
 }
@@ -63,4 +63,23 @@ label {
   float: left;
   width: 30px;
   height: 100px;
+}
+
+.vertical:nth-child(26) {
+  clear: both;
+}
+
+.uncertains-row {
+  text-align: center;
+  width: 30px;
+  line-height: 30px;
+  float: left;
+}
+
+.uncertains-column {
+  text-align: center;
+  border: 1px solid white;
+  width: 30px;
+  line-height: 30px;
+  float: left;
 }
